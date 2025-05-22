@@ -1,0 +1,129 @@
+#cloud-config
+# vim: syntax=yaml
+# This is a cloud-init configuration file for Ubuntu 24.04
+hostname: buildhost
+locale: en_US.UTF-8
+timezone: America/Los_Angeles
+ubuntu_pro:
+  enable:
+    - fips
+    - livepatch
+    - esm-apps
+    - esm-infra
+  token: C13HEa6PSCrzgcpivqjzZzYUbwDpdP
+landscape:
+  client:
+    computer_title: buildhost
+    account_name: w7tmxh8s
+    registration_key: 4e2f3c0a-1b7d-4f8b-9c5d-6a2e5f3b8c1d
+    tags: buildhost,k8s,docker,lxd,tailscale
+rsyslog:
+  configs:
+    - filename: 99-solarwinds.conf
+      content: |
+        $DefaultNetstreamDriverCAFile /etc/ssl/certs/ca-certificates.crt
+        $ActionSendStreamDriver gtls
+        $ActionSendStreamDriverMode 1
+        $ActionSendStreamDriverAuthMode x509/name
+        $ActionSendStreamDriverPermittedPeer *.collector.na-01.cloud.solarwinds.com
+
+        $template SWOFormat,"<%pri%>1 %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% %msgid% [AU6ayBV_bXGfTmZMzJuOTVzpJmV3Zq_iH4H33SN39wh6XiVcjBLT7V3PANjsgsPejJaYVM0@41058]%msg:::sp-if-no-1st-sp%%msg%"
+        
+        *.* @@syslog.collector.na-01.cloud.solarwinds.com:6514;SWOFormat
+  packages:
+    - ca-certificates
+    - rsyslog-gnutls
+users:
+  - name: builder
+    gecos: Builder
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    groups: sudo,adm
+    lock_passwd: false
+    passwd: $6$rounds=4096$3hA/kOgNKm$tqnVgYhwLCMT8HSMCrfM4chUo1sXyvz.5mQhtQHNm6COgJCs9AFGB/qWoWcvLL6.ICRfIkkFsh59qJ5B79GWk0
+byobu_by_default: enable-system
+apt:
+  conf: APT::Install-Recommends "false";
+  disable_suites: [proposed]
+  preserve_sources_list: false
+  primary:
+    - arches: [default]
+      uri: mirror+http://mirrors.ubuntu.com/US.txt
+  security:
+    - arches: [default]
+      uri: http://security.ubuntu.com/ubuntu
+  sources:
+    docker.list:
+      source: deb [signed-by=$KEY_FILE] https://download.docker.com/linux/ubuntu $RELEASE stable
+      keyid: 8D81803C0EBFCD88
+      keyserver: hkps://keyserver.ubuuntu.com:443
+    legendary-telegram.list:
+      source: deb [signed-by=$KEY_FILE] http://raw.githubusercontent.com/gimmedat503/legendary-telegram/master main
+      keyid: CAF66221E936BAC7
+      keyserver: hkps://keyserver.ubuuntu.com:443
+    microsoft-prod.list:
+      source: deb [signed-by=$KEY_FILE] https://packages.microsoft.com/ubuntu/24.04/prod $RELEASE main
+      keyid: EB3E94ADBE1229CF
+      keyserver: hkps://keyserver.ubuuntu.com:443
+    kubernetes.list:
+      source: deb [signed-by=$KEY_FILE] https://pkgs.k8s.io/core:/stable:/v1.33/deb /
+      keyid: 234654DA9A296436
+      keyserver: hkps://keyserver.ubuuntu.com:443
+package_upgrade: true
+package_update: true
+packages:
+  - apt:
+      - containerd.io
+      - cri-dockerd
+      - docker-ce
+      - docker-ce-cli
+      - docker-buildx-plugin
+      - docker-compose-plugin
+      - kubeadm
+      - kubelet
+      - kubernetes-cni
+      - kubectl
+  - snap:
+      - [helm, --classic]
+      - lxd
+      - multipass
+      - tailscale
+lxd:
+  init:
+    storage_backend: dir
+  bridge:
+    mode: new
+    name: lxdbr0
+    mtu: 1500
+    ipv4_address: 10.10.0.1
+    ipv4_netmask: 24
+    ipv4_dhcp_first: 10.10.0.100
+    ipv4_dhcp_last: 10.10.0.249
+    ipv4_dhcp_leases: 150
+    ipv4_nat: true
+    ipv6_address: fd2d:46b5:8935::1
+    ipv6_netmask: 64
+    ipv6_nat: true
+    domain: lxd
+runcmd:
+  - tailscale up 
+      --accept-routes 
+      --hostname "buildhost" 
+      --operator "builder" 
+      --snat-subnet-routes=false 
+      --stateful-filtering 
+      --advertise-routes "10.10.0.0/24,fd2d:46b5:8935::/64" 
+      --auth-key "tskey-auth-k18U1mSxvC11CNTRL-LoLTzqSiUaCQS46HbCyiaCGprEShobCh"
+  - systemctl enable --now kubelet.service; kubeadm init 
+      --control-plane-endpoint api.k8s.internal.madnet-publshing.net 
+      --cri-socket /run/cri-dockerd.sock 
+      --ignore-preflight-errors IsPrivilegedUser,Swap 
+      --node-name buildhost-k8s 
+      --pod-network-cidr 10.224.0.0/12 
+      --service-cidr 10.240.0.0/12 
+      --service-dns-domain k8s.internal.madnet-publshing.net 
+      --skip-token-print 
+      --token nwnnm4.a9sl3fpd4lladr4z 
+      --upload-certs
+power_state:
+  mode: reboot
