@@ -1,0 +1,38 @@
+################################################################################
+#
+# .wslconfig
+#
+################################################################################
+
+# Main WSL settings
+[wsl2]
+	kernel               = C:\\Users\\Owner\\.wsl\\kernel
+	kernelModules        = #null
+	memory               = 8GB
+	processors           = 8
+	localhostForwarding  = true
+	kernelCommandLine    = #null
+	safeMode             = false
+	swap                 = 4GB
+	swapFile             = C:\\Users\\Owner\\.wsl\\swap.vhdx
+	pageReporting        = true
+	guiApplications      = true
+	debugConsole         = false
+	nestedVirtualization = true
+	vmIdleTimeout        = 60000
+	dnsProxy             = true
+	networkingMode       = NAT
+	firewall             = false
+	dnsTunneling         = true
+	autoProxy            = true
+	defaultVhdSize       = 10GB
+
+# Experimental settings
+[experimental]
+	autoMemoryReclaim       = drop
+	sparseVhd               = true
+	bestEffortDnsParsing    = false
+	dnsTunnelingIpAddress   = 10.255.255.254
+	initialAutoProxyTimeout = 1000
+	ignoredPorts            = #null
+	hostAddressLoopback     = true
