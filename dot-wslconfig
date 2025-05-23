@@ -13,7 +13,7 @@
 	kernelCommandLine    = cgroup_no_v1=all
 	safeMode             = false
 	swap                 = 4GB
-	swapFile             = C:\\Users\\Owner\\.wsl\\swap.vhdx
+	swapFile             = C:\\Program Files\\WSL\\tools\\swap.vhdx
 	guiApplications      = true
 	debugConsole         = false
 	nestedVirtualization = true
