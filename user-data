@@ -10,12 +10,12 @@ ubuntu_pro:
     - livepatch
     - esm-apps
     - esm-infra
-  token: C13HEa6PSCrzgcpivqjzZzYUbwDpdP
+  token: @redacted@
 landscape:
   client:
     computer_title: buildhost
-    account_name: w7tmxh8s
-    registration_key: 4e2f3c0a-1b7d-4f8b-9c5d-6a2e5f3b8c1d
+    account_name: @redacted@
+    registration_key: @redacted@
     tags: buildhost,k8s,docker,lxd,tailscale
 rsyslog:
   configs:
@@ -27,7 +27,7 @@ rsyslog:
         $ActionSendStreamDriverAuthMode x509/name
         $ActionSendStreamDriverPermittedPeer *.collector.na-01.cloud.solarwinds.com
 
-        $template SWOFormat,"<%pri%>1 %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% %msgid% [AU6ayBV_bXGfTmZMzJuOTVzpJmV3Zq_iH4H33SN39wh6XiVcjBLT7V3PANjsgsPejJaYVM0@41058]%msg:::sp-if-no-1st-sp%%msg%"
+        $template SWOFormat,"<%pri%>1 %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% %msgid% [@redacted@]%msg:::sp-if-no-1st-sp%%msg%"
         
         *.* @@syslog.collector.na-01.cloud.solarwinds.com:6514;SWOFormat
   packages:
@@ -40,7 +40,7 @@ users:
     shell: /bin/bash
     groups: sudo,adm
     lock_passwd: false
-    passwd: $6$rounds=4096$3hA/kOgNKm$tqnVgYhwLCMT8HSMCrfM4chUo1sXyvz.5mQhtQHNm6COgJCs9AFGB/qWoWcvLL6.ICRfIkkFsh59qJ5B79GWk0
+    passwd: @redacted@
 byobu_by_default: enable-system
 apt:
   conf: APT::Install-Recommends "false";
@@ -112,18 +112,18 @@ runcmd:
       --operator "builder" 
       --snat-subnet-routes=false 
       --stateful-filtering 
-      --advertise-routes "10.10.0.0/24,fd2d:46b5:8935::/64" 
-      --auth-key "tskey-auth-k18U1mSxvC11CNTRL-LoLTzqSiUaCQS46HbCyiaCGprEShobCh"
+      --advertise-routes @redacted@ 
+      --auth-key @redacted@
   - systemctl enable --now kubelet.service; kubeadm init 
-      --control-plane-endpoint api.k8s.internal.madnet-publshing.net 
+      --control-plane-endpoint @redacted@
       --cri-socket /run/cri-dockerd.sock 
       --ignore-preflight-errors IsPrivilegedUser,Swap 
       --node-name buildhost-k8s 
       --pod-network-cidr 10.224.0.0/12 
       --service-cidr 10.240.0.0/12 
-      --service-dns-domain k8s.internal.madnet-publshing.net 
+      --service-dns-domain @redacted@
       --skip-token-print 
-      --token nwnnm4.a9sl3fpd4lladr4z 
+      --token @redacted@
       --upload-certs
 power_state:
   mode: reboot
